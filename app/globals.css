@@ -4,8 +4,12 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
+    /* Professional Light Theme - High Contrast & Legible */
+    --background: 210 20% 98%;
     --foreground: 222 47% 11%;
+
+    --surface: 0 0% 100%;
+    --surface-raised: 0 0% 100%;
 
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
@@ -14,55 +18,65 @@
     --popover-foreground: 222 47% 11%;
 
     --primary: 226 70% 55%;
-    --primary-foreground: 210 40% 98%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
+    --brand-navy: 222 47% 11%;
+    --brand-primary: 226 70% 55%;
+
+    --secondary: 215 25% 27%;
     --secondary-foreground: 222 47% 11%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 38%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222 47% 11%;
+    --accent: 226 70% 96%;
+    --accent-foreground: 226 70% 50%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
+    --border: 214 32% 90%;
+    --input: 214 32% 90%;
     --ring: 226 70% 55%;
 
-    --radius: 0.75rem;
+    --radius: 0.85rem;
   }
 
   .dark {
-    --background: 222 47% 7%;
+    /* Professional Dark Theme */
+    --background: 224 71% 4%;
     --foreground: 210 40% 98%;
 
-    --card: 222 47% 10%;
+    --surface: 222 47% 9%;
+    --surface-raised: 223 47% 13%;
+
+    --card: 222 47% 9%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 222 47% 10%;
+    --popover: 222 47% 9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 226 70% 60%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 239 84% 67%;
+    --primary-foreground: 224 58% 7%;
 
-    --secondary: 217.2 32.6% 17.5%;
+    --brand-navy: 223 47% 13%;
+    --brand-primary: 239 84% 67%;
+
+    --secondary: 217 19% 78%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
 
-    --accent: 217.2 32.6% 17.5%;
+    --accent: 239 84% 20%;
     --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 226 70% 60%;
+    --border: 217 33% 18%;
+    --input: 217 33% 18%;
+    --ring: 239 84% 67%;
   }
 }
 
@@ -72,38 +86,86 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+  ::selection {
+    background-color: rgba(79, 70, 229, 0.2);
+  }
+  h1, h2, h3, .font-display {
+    letter-spacing: -0.02em;
   }
 }
 
-/* Custom scrollbars for clean multi-panel legal view */
+/* Glassmorphism helpers */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(227, 232, 242, 0.8);
+}
+
+.dark .glass-panel {
+  background: rgba(14, 22, 48, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(31, 43, 82, 0.8);
+}
+
+/* Gradient text utility */
+.text-brand-gradient {
+  background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #06B6D4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.dark .text-brand-gradient {
+  background: linear-gradient(135deg, #6366F1 0%, #9061F9 50%, #22D3EE 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Custom scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.3);
+  background: rgba(122, 135, 159, 0.25);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.5);
+  background: rgba(122, 135, 159, 0.45);
 }
 
-/* Legal text styling */
+/* Document & Legal typography */
 .clause-prose {
-  line-height: 1.7;
-  font-size: 0.95rem;
+  line-height: 1.75;
+  font-size: 1rem;
   letter-spacing: -0.01em;
 }
 
+/* Anti-Hallucination Highlight Badges */
 mark.lexi-highlight {
   cursor: pointer;
-  transition: all 0.15s ease-in-out;
+  border-radius: 0.25rem;
+  padding: 0.1rem 0.25rem;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  font-weight: 500;
 }
 mark.lexi-highlight:hover {
-  filter: brightness(1.15);
-  box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+  filter: brightness(1.1);
+  box-shadow: 0 0 10px rgba(220, 38, 38, 0.4);
+}
+
+/* Accessibility: Reduced motion fallbacks */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

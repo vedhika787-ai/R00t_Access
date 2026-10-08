@@ -42,14 +42,34 @@ export const INITIAL_ORGANIZATION: Organization = {
   updated_at: new Date().toISOString(),
 };
 
-export const INITIAL_PROFILE: Profile = {
-  id: DEFAULT_USER_ID,
-  full_name: "Sarah Chen, General Counsel",
-  role: "admin",
-  organization_id: DEFAULT_ORG_ID,
-  created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString(),
-};
+export const INITIAL_PROFILES: Profile[] = [
+  {
+    id: DEFAULT_USER_ID,
+    full_name: "Sarah Chen (General Counsel)",
+    role: "admin",
+    organization_id: DEFAULT_ORG_ID,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: "00000000-0000-0000-0000-000000000003",
+    full_name: "David Ross (Senior Legal Counsel)",
+    role: "reviewer",
+    organization_id: DEFAULT_ORG_ID,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: "00000000-0000-0000-0000-000000000004",
+    full_name: "Alex Rivera (Procurement Lead)",
+    role: "viewer",
+    organization_id: DEFAULT_ORG_ID,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+];
+
+export const INITIAL_PROFILE: Profile = INITIAL_PROFILES[0];
 
 export const SEED_PLAYBOOK_RULES: PlaybookRule[] = [
   {
@@ -323,7 +343,7 @@ class MemoryStore {
         const parsed = JSON.parse(raw);
         return {
           organizations: parsed.organizations || [INITIAL_ORGANIZATION],
-          profiles: parsed.profiles || [INITIAL_PROFILE],
+          profiles: parsed.profiles?.length ? parsed.profiles : INITIAL_PROFILES,
           contracts: parsed.contracts || [],
           clauses: parsed.clauses || [],
           playbook_rules: parsed.playbook_rules?.length ? parsed.playbook_rules : SEED_PLAYBOOK_RULES,
@@ -341,7 +361,7 @@ class MemoryStore {
 
     return {
       organizations: [INITIAL_ORGANIZATION],
-      profiles: [INITIAL_PROFILE],
+      profiles: INITIAL_PROFILES,
       contracts: [],
       clauses: [],
       playbook_rules: SEED_PLAYBOOK_RULES,
@@ -364,6 +384,36 @@ class MemoryStore {
     } catch (e) {
       console.error("Failed to write persistent store to disk:", e);
     }
+  }
+
+  private activeUserId: string = DEFAULT_USER_ID;
+
+  getActiveUserId(): string {
+    return this.activeUserId;
+  }
+
+  setActiveUserId(id: string): void {
+    if (this.state.profiles.some((p) => p.id === id)) {
+      this.activeUserId = id;
+    }
+  }
+
+  getProfiles(orgId: string = DEFAULT_ORG_ID): Profile[] {
+    return this.state.profiles.filter((p) => p.organization_id === orgId);
+  }
+
+  getProfile(id: string): Profile | undefined {
+    return this.state.profiles.find((p) => p.id === id);
+  }
+
+  getActiveProfile(): Profile {
+    return this.getProfile(this.activeUserId) || this.state.profiles[0] || INITIAL_PROFILES[0];
+  }
+
+  createProfile(profile: Profile): Profile {
+    this.state.profiles.push(profile);
+    this.persistState();
+    return profile;
   }
 
   // --- Contracts ---

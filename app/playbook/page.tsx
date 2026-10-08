@@ -16,7 +16,11 @@ import {
   AlertTriangle,
   Scale,
 } from "lucide-react";
-import { PlaybookRule, RuleCategory, RuleSeverity } from "@/types/database";
+import { PlaybookRule, RuleCategory, RuleSeverity, Profile } from "@/types/database";
+import { TiltCard } from "@/components/ui/tilt-card";
+import { SeverityBadge } from "@/components/ui/severity-badge";
+import { SkeletonCard } from "@/components/ui/skeleton-table";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export default function PlaybookPage() {
   const queryClient = useQueryClient();
@@ -156,6 +160,19 @@ export default function PlaybookPage() {
     queryClient.invalidateQueries({ queryKey: ["playbook-rules"] });
   };
 
+  // Fetch Active Profile
+  const { data: authData } = useQuery<{ activeProfile: Profile }>({
+    queryKey: ["auth-me"],
+    queryFn: async () => {
+      const res = await fetch("/api/auth/me");
+      if (!res.ok) throw new Error("Failed to load active profile");
+      return res.json();
+    },
+  });
+
+  const isAdmin = authData?.activeProfile?.role === "admin";
+  const userRole = authData?.activeProfile?.role || "reviewer";
+
   // Export JSON
   const handleExportJson = () => {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(rules, null, 2));
@@ -169,13 +186,28 @@ export default function PlaybookPage() {
 
   return (
     <div className="container max-w-7xl mx-auto px-4 sm:px-8 py-8 space-y-8">
+      {/* Role Banner if not Admin */}
+      {!isAdmin && (
+        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-500 flex items-center justify-between">
+          <div className="flex items-center gap-2.5 font-medium">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            <span>
+              <strong>Read-Only Access:</strong> You are currently signed in as a <strong>{userRole.toUpperCase()}</strong>. Playbook modifications (adding, editing, deleting rules) require <strong>Administrator</strong> privileges.
+            </span>
+          </div>
+          <span className="text-[10px] font-mono uppercase bg-amber-500/20 px-2 py-0.5 rounded font-bold">
+            Read Only
+          </span>
+        </div>
+      )}
+
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-border pb-6">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
             Corporate Legal Playbook
           </h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-slate-600 dark:text-slate-300 font-normal mt-1">
             Configurable enterprise rules, preferred clauses, acceptable fallbacks, and walk-away limits
           </p>
         </div>
@@ -183,41 +215,51 @@ export default function PlaybookPage() {
         <div className="flex items-center gap-2.5">
           <button
             onClick={handleExportJson}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-muted hover:bg-muted/80 text-foreground border border-border transition-colors"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-muted hover:bg-muted/80 text-slate-800 dark:text-slate-200 border border-border transition-colors shadow-2xs"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Export JSON</span>
           </button>
 
-          <button
-            onClick={openNewModal}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-primary hover:bg-primary/90 text-white shadow-md transition-all"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Playbook Rule</span>
-          </button>
+          {isAdmin ? (
+            <button
+              onClick={openNewModal}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-primary hover:bg-primary/90 text-white shadow-xs transition-all"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Playbook Rule</span>
+            </button>
+          ) : (
+            <span
+              title="Admin role required to add new rules"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium bg-muted/60 text-slate-500 border border-border cursor-not-allowed"
+            >
+              <Scale className="w-3.5 h-3.5" />
+              <span>Add Rule (Admin Only)</span>
+            </span>
+          )}
         </div>
       </div>
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-2.5" />
+          <Search className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
           <input
             type="text"
             placeholder="Search rules by title or requirement..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-card border border-border rounded-xl pl-9 pr-3 py-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+            className="w-full bg-card border border-border rounded-xl pl-9 pr-3 py-2 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 shadow-2xs font-normal"
           />
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Filter className="w-4 h-4 text-muted-foreground" />
+          <Filter className="w-4 h-4 text-slate-500" />
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="text-xs bg-card border border-border rounded-xl px-3 py-2 text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+            className="text-xs bg-card border border-border rounded-xl px-3 py-2 text-slate-800 dark:text-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 shadow-2xs"
           >
             <option value="all">All Categories ({rules.length})</option>
             <option value="liability">Liability</option>
@@ -235,80 +277,86 @@ export default function PlaybookPage() {
       </div>
 
       {/* Rules Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {isLoading ? (
-          <div className="col-span-full py-16 text-center text-muted-foreground">
-            Loading corporate playbook rules...
-          </div>
-        ) : filteredRules.length === 0 ? (
-          <div className="col-span-full py-16 text-center text-muted-foreground">
-            No rules found matching your filter.
-          </div>
-        ) : (
-          filteredRules.map((rule) => {
-            const isCritical = rule.severity_default === "critical";
-            const isHigh = rule.severity_default === "high";
-
+      {isLoading ? (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
+      ) : filteredRules.length === 0 ? (
+        <EmptyState
+          icon={BookOpen}
+          title="No Playbook Rules Found"
+          description="No enterprise policies match your current search criteria or category filter."
+          actionLabel={isAdmin ? "Create New Rule" : undefined}
+          onAction={isAdmin ? openNewModal : undefined}
+        />
+      ) : (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {filteredRules.map((rule) => {
             return (
-              <div
+              <TiltCard
                 key={rule.id}
-                className="p-5 rounded-2xl border border-border bg-card flex flex-col justify-between space-y-4 hover:border-primary/40 transition-all shadow-xs"
+                className="p-5 flex flex-col justify-between space-y-4 bg-card border border-border shadow-xs hover:shadow-md transition-all"
               >
-                <div className="space-y-2.5">
+                <div className="space-y-3">
                   <div className="flex items-start justify-between gap-2">
-                    <span
-                      className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded ${
-                        isCritical
-                          ? "bg-red-500/10 text-red-500"
-                          : isHigh
-                          ? "bg-orange-500/10 text-orange-500"
-                          : "bg-amber-500/10 text-amber-500"
-                      }`}
-                    >
-                      {rule.severity_default} • Weight {rule.weight}
-                    </span>
+                    <SeverityBadge severity={rule.severity_default} size="sm" />
 
-                    {rule.is_mandatory && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
-                        Mandatory
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] font-mono font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/90 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
+                        Weight {rule.weight}/5
                       </span>
-                    )}
+                      {rule.is_mandatory && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-500/25">
+                          Mandatory
+                        </span>
+                      )}
+                    </div>
                   </div>
 
-                  <h3 className="font-bold text-sm text-foreground">{rule.title}</h3>
+                  <h3 className="font-bold text-base text-slate-900 dark:text-slate-100 leading-snug tracking-tight">
+                    {rule.title}
+                  </h3>
 
-                  <p className="text-xs text-muted-foreground line-clamp-3">
+                  <p className="text-xs sm:text-[13px] text-slate-700 dark:text-slate-300 font-normal line-clamp-3 leading-relaxed">
                     {rule.requirement_text}
                   </p>
                 </div>
 
                 <div className="pt-3 border-t border-border flex items-center justify-between text-xs">
-                  <span className="capitalize text-muted-foreground text-[11px] font-medium">
-                    {rule.category.replace("_", " ")}
+                  <span className="capitalize text-slate-600 dark:text-slate-400 text-xs font-medium">
+                    {rule.category.replace(/_/g, " ")}
                   </span>
 
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => openEditModal(rule)}
-                      className="p-1.5 hover:bg-muted text-muted-foreground hover:text-foreground rounded-lg transition-colors"
-                      title="Edit Rule"
-                    >
-                      <Edit2 className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteRule(rule.id)}
-                      className="p-1.5 hover:bg-red-500/10 text-muted-foreground hover:text-red-500 rounded-lg transition-colors"
-                      title="Delete Rule"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                  {isAdmin ? (
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => openEditModal(rule)}
+                        className="p-1.5 hover:bg-muted text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 rounded-lg transition-colors"
+                        title="Edit Rule"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteRule(rule.id)}
+                        className="p-1.5 hover:bg-red-500/10 text-slate-500 hover:text-red-500 rounded-lg transition-colors"
+                        title="Delete Rule"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
+                      Governance Locked
+                    </span>
+                  )}
                 </div>
-              </div>
+              </TiltCard>
             );
-          })
-        )}
-      </div>
+          })}
+        </div>
+      )}
 
       {/* Edit / Create Modal */}
       {isCreating && (

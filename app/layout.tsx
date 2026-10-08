@@ -1,11 +1,20 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
-import { Navbar } from "@/components/layout/navbar";
-import { CommandPalette } from "@/components/layout/command-palette";
+import { AppShell } from "@/components/layout/app-shell";
 
-const inter = Inter({ subsets: ["latin"] });
+const sans = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
+
+const mono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "LexiGuard | Enterprise Contract Risk & Redline Assistant",
@@ -20,18 +29,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={`${sans.variable} ${mono.variable} font-sans antialiased text-foreground bg-background`}>
         <Providers>
-          <div className="min-h-screen flex flex-col bg-background text-foreground">
-            <Navbar />
-            <CommandPalette />
-            <main className="flex-1">{children}</main>
-            <footer className="border-t border-border py-4 px-6 text-center text-xs text-muted-foreground bg-background/50">
-              <p>
-                LexiGuard v1.0 • Enterprise Legal Tech • AI-Assisted Analysis. Not Legal Advice. Qualified Counsel Review Required.
-              </p>
-            </footer>
-          </div>
+          <AppShell>{children}</AppShell>
         </Providers>
       </body>
     </html>
